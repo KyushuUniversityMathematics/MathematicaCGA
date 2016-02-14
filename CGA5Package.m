@@ -655,6 +655,10 @@ RPnt3D::usage="RPnt3D[x_] CGA\:4e0a\:306e\:70b9x\:30923D\:306e\:70b9\:306b\:3059
 RPnt2D::usage="RPnt2D[x_] CGA\:4e0a\:306e\:70b9x\:30922D\:306e\:70b9\:306b\:3059\:308b.";
 
 
+(* ::Text:: *)
+(*\:9006\:5143\:306e\:8a08\:7b97*)
+
+
 eInversion[AlgebraicForm_]:=Module[{eBaseForm,CoefList1,BaseInversion,Inver},
 BaseInversion[subset_]:=CGAProduct[Map[e[{#}]&,Reverse[subset]]];
 eBaseForm=Collect[wTFe[AlgebraicForm],e[_]];
@@ -711,6 +715,10 @@ CGADeterminant::usage="CGADeterminant[AlgebraicForm_] CGA\:306e\:5143 Algebgaric
 Determinant\:3092\:8a08\:7b97\:3059\:308b. 0\:3067\:306a\:3044\:3068\:304d\:9006\:5143\:3092\:3082\:3064.";
 
 
+(* ::Text:: *)
+(*\:6298\:308a\:7d19\:3078\:306e\:5fdc\:7528*)
+
+
 OriOperator[x_,y_,\[Theta]_]:=Module[{xx=y-x,NNN,Bi,R,T,TI,O,OI},
 NNN=(CGAProduct[xx,xx]/.w[{}]->1);
 xx=Collect[xx/N[Sqrt[NNN]],w[_]];(* xx=y-x \:3092\:5358\:4f4d\:30d9\:30af\:30c8\:30eb\:306b\:3059\:308b*)
@@ -725,6 +733,42 @@ O
 
 OriOperator::usage="OriOperator[x_,y_,\[Theta]_] \:6709\:5411\:76f4\:7ddaxy(\:30d9\:30af\:30c8\:30ebx\:304b\:3089\:30d9\:30af\:30c8\:30eby\:3078)\:3092
 \:3000\:6298\:308a\:7dda\:3068\:3057\:305f\:89d2\:5ea6\[Theta] \:306e\:6298\:308a\:64cd\:4f5c\:306e\:4f5c\:7528\:5b50.";
+
+
+CGAOri3D[O_,Op_,C_]:=Append[O,
+"P"->
+Join[O["P"],Association[
+Map[
+#->{O["P"][#][[1]],CGAProduct[Op,O["P"][#][[2]]]}&,
+Union[Flatten[Map[O["F"][#]&,C]]]]]
+]
+];
+
+
+CGAOri3D::usage="CGAOri3D[O_,Op_,C_] \:6298\:308a\:7d19O \:306e\:9762\:96c6\:5408C \:306e\:5404\:9802\:70b9\:306b\:4f5c\:7528\:5b50Op \:3092\:4f5c\:7528\:3055\:305b\:308b.";
+
+
+CGAPolygon[PointSet_]:=Polygon[Map[RPnt3D,PointSet]];
+OrigamiPointCoodinate[O_,Pkey_]:=
+CGAProduct[O["P"][Pkey][[2]],O["P"][Pkey][[1]],CGAInverse[O["P"][Pkey][[2]]]];
+OrigamiFace[O_,Fkey_]:=<|Fkey->CGAPolygon[Map[OrigamiPointCoodinate[O,#]&,O["F"][Fkey]]]|>;
+OrigamiFaceSet[O_]:=Association[Map[OrigamiFace[O,#]&,Keys[O["F"]]]];
+OrigamiFacePolygons[O_]:=Prepend[Values[OrigamiFaceSet[O]],FaceForm[Yellow,Green]];
+OrigamiFaceName[O_]:=
+Map[Text[Style[Subscript["f", (#)],Large,Bold,Black],Total[OrigamiFaceSet[O][#][[1]]]/Length[OrigamiFaceSet[O][#][[1]]]]&,
+Keys[OrigamiFaceSet[O]]];
+OrigmiPointOutput[O_]:=Map[Text[Style[Subscript["P", (#)],Large,Bold,Red],RPnt3D[OrigamiPointCoodinate[O,#]]]&,Keys[O["P"]]];
+OrigamiOutput[O_]:=OrigamiOutput[O,{}];
+OrigamiOutput[O_,RRule_]:=Graphics3D[Join[OrigamiFaceName[O],OrigmiPointOutput[O],OrigamiFacePolygons[O]]/.RRule,Boxed->False];
+
+
+CGAPolygon::usage="CGAPolygon[PointSet_] CGA\:306e\:70b9\:96c6\:5408\:304b\:3089, \:305d\:308c\:3092\:9802\:70b9\:3068\:3057\:305fPolygon\:3092\:4f5c\:308b.";
+OrigamiPointCoodinate::usage="OrigamiPointCoodinate[O_,Pkey_] \:6298\:308a\:7d19O \:306e\:70b9Pkey \:3092\:8a08\:7b97\:3059\:308b.";
+OrigamiFace::usage="OrigamiFace[O_,Fkey_] \:6298\:308a\:7d19O \:306e\:9762Fkey \:306ePolygon\:3092\:8a08\:7b97\:3059\:308b.";
+OrigamiFaceSet::usage="OrigamiFaceSet[O_] \:6298\:308a\:7d19O \:306e\:3059\:3079\:3066\:306e\:9762 \:306ePolygon\:3092\:8a08\:7b97\:3059\:308b.";
+OrigamiFaceOutput::usage="OrigamiFaceOutput[O_]\:3000OrigamiFaceOutput[O_,RRule_] \:6298\:308a\:7d19O \:306e\:3059\:3079\:3066\:306e\:9762\:3092\:8868\:793a.";
+OrigamiFaceName::usage="OrigamiFaceName[O_]\:3000\:6298\:308a\:7d19O \:306e\:3059\:3079\:3066\:306e\:9762\:306e\:540d\:524d\:3092Text\:306b\:3059\:308b.";
+OrigmiPointOutput::usage="OrigmiPointOutput[O_]\:3000\:6298\:308a\:7d19O \:306e\:3059\:3079\:3066\:306e\:9762\:306e\:540d\:524d\:3092Text\:306b\:3059\:308b.";
 
 
 (* ::Text:: *)
